@@ -131,7 +131,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             ultron = !ultron
             prefs.saveUltron(ultron)
             applyMode()
-            say(if (ultron) "Ultron devrede." else "Jarvis geri dondu efendim.")
+            if (ultron) say("Ultron devrede.") else playIntro()
         }
         btnMic.setOnClickListener { startListening() }
         btnSettings.setOnClickListener { showSettings() }
@@ -145,6 +145,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         timerText.setOnClickListener { cd?.cancel(); timerText.text = "--:--" }
 
         ensurePermission()
+        if (!ultron) ui.postDelayed({ playIntro() }, 700)
     }
 
     override fun onInit(s: Int) {
@@ -325,11 +326,17 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     override fun onResume() { super.onResume(); foreground = true }
     override fun onPause() { super.onPause(); foreground = false }
 
+    private fun playIntro() {
+        speaking = true; stateView.text = "KONUŞUYOR"; ui.post(speakAnim)
+        IntroPlayer.play(this) { speaking = false; orb.setLevel(0f); stateView.text = "SESSİZ" }
+    }
+
     override fun onDestroy() {
         ui.removeCallbacks(tick)
         cd?.cancel()
         recognizer?.destroy()
         tts?.shutdown()
+        IntroPlayer.release()
         super.onDestroy()
     }
 }
