@@ -146,6 +146,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         ensurePermission()
         if (!ultron) ui.postDelayed({ playIntro() }, 700)
+        if (!ultron) ui.postDelayed({ playIntro() }, 700)
     }
 
     override fun onInit(s: Int) {
@@ -331,11 +332,17 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         IntroPlayer.play(this) { speaking = false; orb.setLevel(0f); stateView.text = "SESSİZ" }
     }
 
+    private fun playIntro() {
+        speaking = true; stateView.text = "KONUŞUYOR"; ui.post(speakAnim)
+        IntroPlayer.play(this) { speaking = false; orb.setLevel(0f); stateView.text = "SESSİZ" }
+    }
+
     override fun onDestroy() {
         ui.removeCallbacks(tick)
         cd?.cancel()
         recognizer?.destroy()
         tts?.shutdown()
+        IntroPlayer.release()
         IntroPlayer.release()
         super.onDestroy()
     }
