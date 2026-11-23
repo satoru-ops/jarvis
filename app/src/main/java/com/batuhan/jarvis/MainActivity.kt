@@ -63,6 +63,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var ultron = false
     private var speaking = false
     private var listening = false
+    private var foreground = false
     private val ui = Handler(Looper.getMainLooper())
 
     private val speakAnim = object : Runnable {
@@ -195,6 +196,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun say(text: String) {
         status.text = text
+        if (!foreground) Notifier.send(this, text)
         if (!ttsReady) return
         applyVoice()
         tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "u" + System.currentTimeMillis())
@@ -217,7 +219,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun ensurePermission() {
         if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO), 1)
+            requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO, "android.permission.POST_NOTIFICATIONS"), 1)
         }
     }
 
@@ -319,6 +321,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             .setNegativeButton("Iptal", null)
             .show()
     }
+
+    override fun onResume() { super.onResume(); foreground = true }
+    override fun onPause() { super.onPause(); foreground = false }
 
     override fun onDestroy() {
         ui.removeCallbacks(tick)
